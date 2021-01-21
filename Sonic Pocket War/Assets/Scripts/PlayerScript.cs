@@ -4,7 +4,14 @@ using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
-    public float speed = 2f;
+
+    public float speed = 0f;
+
+    public float maxSpeed = 5f;
+
+    public float minSpeed = -5f;
+
+    public float acceleration = 1f; 
 
     public LayerMask platformLayerMask;
 
@@ -27,12 +34,29 @@ public class PlayerScript : MonoBehaviour
         GroundCheck();
 
 
+        //speed -= acceleration * Time.deltaTime;
+
+        if (speed > maxSpeed)
+            speed = maxSpeed;
+
+        if (speed < minSpeed)
+            speed = minSpeed;
+
         if (Input.GetKey(KeyCode.LeftArrow))
-            rigidbody2d.velocity = new Vector2(speed * -1, rigidbody2d.velocity.y);
+            speed -= acceleration * Time.deltaTime;
+            
+
         if (Input.GetKey(KeyCode.RightArrow))
+            speed += acceleration * Time.deltaTime;
+
+        if (!Input.GetKey(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow) && GroundCheck())
+        {
+            speed /= 1.003f;
+        }
+
             rigidbody2d.velocity = new Vector2(speed, rigidbody2d.velocity.y);
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        if (Input.GetKeyDown(KeyCode.Space) && GroundCheck())
         {
             Jump();
         }
@@ -40,16 +64,17 @@ public class PlayerScript : MonoBehaviour
 
     private void Jump()
     {
+        rigidbody2d.velocity.Set(rigidbody2d.velocity.x,0);
         rigidbody2d.AddForce(Vector3.up * jumpHeight, ForceMode2D.Impulse);
 
         isGrounded = false;
     }
 
-    private void GroundCheck()
+    private bool GroundCheck()
     {
-        float lengthdown = 0.15f;
+        float lengthdown = 0.1f;
 
         RaycastHit2D hit = Physics2D.BoxCast(boxcollider2d.bounds.center, boxcollider2d.bounds.size, 0f, Vector2.down, lengthdown, platformLayerMask);
-        isGrounded = hit.collider;
+        return hit.collider;
     }
 }
